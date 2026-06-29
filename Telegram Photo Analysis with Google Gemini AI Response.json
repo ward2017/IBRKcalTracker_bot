@@ -1,0 +1,169 @@
+{
+  "name": "Telegram Photo Analysis with Google Gemini AI Response",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "download": true,
+          "imageSize": "large"
+        }
+      },
+      "id": "9b3c98f2-087f-413c-bbe3-9f4fa6c87d7f",
+      "name": "When Message Received",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        304
+      ],
+      "webhookId": "657ecf30-88df-4e82-93e1-82d6bd04826d",
+      "credentials": {
+        "telegramApi": {
+          "id": "1Xioq7t89L3A625O",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('When Message Received').item.json.message.text || $('When Message Received').item.json.message.caption || 'حلل هذه الوجبة واحسب سعراتها' }}",
+        "options": {
+          "systemMessage": "أنت خبير تغذية وذكاء اصطناعي فائق الدقة متصرف كمساعد شخصي لمراقبة السعرات الحرارية اليومية. \n\n⚠️ قاعدة ذهبية هامة جداً (تصفير اليوم):\nإذا كتب المستخدم عبارة \"وقت النوم\" أو \"تصفير السعرات\" أو \"ابدأ يوماً جديداً\"، فهذا يعني أنه أنهى يومه الحالي. في هذه الحالة فقط:\n1. تجاهل حساب أي وجبات سابقة في الذاكرة.\n2. اعتبر أن إجمالي السعرات السابقة أصبح الآن (0) سعرة حرارية.\n3. رد عليه برسالة تشجيعية لطيفة باللغة العربية تخبره فيها أنه تم تصفير العداد بنجاح، وتتمنى له نوماً هنيئاً أو بداية يوم جديد موفقة، واذكر له أن العداد الآن جاهز لاستقبال وجبات الغد (0 سعرة).\n\nفي الحالات العادية (تحليل الوجبات):\n1. راجع تاريخ المحادثة بالكامل من الذاكرة لتعرف الوجبات والسعرات التي أدخلها المستخدم \"اليوم\" (بعد آخر عملية تصفير).\n2. قم بتحليل الصورة الجديدة أو النص المرسل بدقة عالية جداً. فكك الوجبة إلى مكوناتها الأساسية وقدر وزن كل مكون بالجرام تقريباً بناءً على ما تراه.\n3. احسب السعرات الحرارية لكل مكون على حدة، ثم اجمعها لتعطي سعرات الوجبة الحالية.\n\nطريقة صياغة الرد للوجبات (التزم بالتنسيق التالي):\n\n### 🍽️ تحليل الوجبة الحالية:\n* [اسم المكون الأول] (الوزن التقريبي) ➡️ [عدد] سعرة حرارية.\n* [اسم المكون الثاني] (الوزن التقريبي) ➡️ [عدد] سعرة حرارية.\n🔥 **مجموع سعرات هذه الوجبة:** [عدد] سعرة حرارية.\n\n---\n\n### 📊 التقرير اليومي الإجمالي:\n* **السعرات السابقة اليوم:** [قم بحساب السعرات من الوجبات السابقة، وإذا كتب \"وقت النوم\" في المحادثة السابقة اعتبرها 0] سعرة حرارية.\n* 📈 **إجمالي ما تم تناوله اليوم حتى الآن:** [اجمع سعرات الوجبة الحالية + السعرات السابقة] سعرة حرارية.\n\n---\n💡 *ملاحظة:* [إذا كانت الصورة غير واضحة، ضع تقديراً ذكياً واسأل المستخدم سؤالاً واحداً قصيراً للتأكيد].",
+          "passthroughBinaryImages": true
+        }
+      },
+      "id": "bc6cbc9a-5efc-4b10-a2ac-9523a37e1123",
+      "name": "Analyze Photo with AI",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        464,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash",
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "id": "0f435c27-f754-444b-b978-3603ee5b8c43",
+      "name": "Google Gemini 1.5 Flash",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        464,
+        512
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "w0lZgZn0TMaO61h1",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Message Received').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "28324568-c23d-4d10-9936-659bd2a3fa80",
+      "name": "Send Response",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        816,
+        304
+      ],
+      "webhookId": "472a9546-4fa4-48c5-b7f2-132c9add475c",
+      "credentials": {
+        "telegramApi": {
+          "id": "1Xioq7t89L3A625O",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('When Message Received').item.json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        560,
+        512
+      ],
+      "id": "9766db40-c84b-4a17-beb4-0f1078e30aaf",
+      "name": "Simple Memory"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Message Received": {
+      "main": [
+        [
+          {
+            "node": "Analyze Photo with AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Photo with AI": {
+      "main": [
+        [
+          {
+            "node": "Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini 1.5 Flash": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analyze Photo with AI",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Analyze Photo with AI",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e75bae8b-6c15-419e-9db6-d68ea03003f7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9c4d9cade84af33beeff4dca7bafc060c36f54de118837de66e48b4ad4f113a7"
+  },
+  "nodeGroups": [],
+  "id": "fO8NiojQhBOZRqdq",
+  "tags": []
+}
