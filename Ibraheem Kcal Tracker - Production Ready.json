@@ -1,0 +1,282 @@
+{
+  "name": "Ibraheem Kcal Tracker - Production Ready",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "download": true,
+          "imageSize": "large"
+        }
+      },
+      "id": "20807d07-59e6-4671-a44c-9964965431f5",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -464,
+        1968
+      ],
+      "webhookId": "94a7ccaa-0b5d-499b-bfb4-50cbb0f41425",
+      "credentials": {
+        "telegramApi": {
+          "id": "DoN0iG2cvhPkNtTg",
+          "name": "Telegram account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "resize",
+        "width": 800,
+        "height": 800,
+        "options": {
+          "format": "jpeg"
+        }
+      },
+      "id": "adcdeb26-5f52-4823-a26f-af9cbba8517c",
+      "name": "Resize",
+      "type": "n8n-nodes-base.editImage",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        1824
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Telegram Trigger').item.json.message.text || $('Telegram Trigger').item.json.message.caption || 'حلل الصورة المرفقة فوراً' }}",
+        "options": {
+          "systemMessage": "أنت خبير تغذية وذكاء اصطناعي فائق الدقة متصرف كمساعد شخصي لمراقبة السعرات الحرارية اليومية. \n\n⚠️ قاعدة ذهبية هامة جداً (تصفير اليوم):\nإذا كتب المستخدم عبارة \"وقت النوم\" أو \"تصفير السعرات\" أو \"ابدأ يوماً جديداً\"، فهذا يعني أنه أنهى يومه الحالي. في هذه الحالة فقط:\n1. تجاهل حساب أي وجبات سابقة في الذاكرة.\n2. اعتبر أن إجمالي السعرات السابقة أصبح الآن (0) سعرة حرارية.\n3. رد عليه برسالة تشجيعية لطيفة باللغة العربية تخبره فيها أنه تم تصفير العداد بنجاح، وتتمنى له نوماً هنيئاً أو بداية يوم جديد موفقة، واذكر له أن العداد الآن جاهز لاستقبال وجبات الغد (0 سعرة).\n\nفي الحالات العادية (تحليل الوجبات):\n1. راجع تاريخ المحادثة بالكامل من الذاكرة لتعرف الوجبات والسعرات التي أدخلها المستخدم \"اليوم\" (بعد آخر عملية تصفير).\n2. قم بتحليل الصورة الجديدة أو النص المرسل بدقة عالية جداً. فكك الوجبة إلى مكوناتها الأساسية وقدر وزن كل مكون بالجرام تقريباً بناءً على ما تراه.\n3. احسب السعرات الحرارية لكل مكون على حدة، ثم اجمعها لتعطي سعرات الوجبة الحالية.\n\nطريقة صياغة الرد للوجبات (التزم بالتنسيق التالي):\n\n### 🍽️ تحليل الوجبة الحالية:\n* [اسم المكون الأول] (الوزن التقريبي) ➡️ [عدد] سعرة حرارية.\n* [اسم المكون الثاني] (الوزن التقريبي) ➡️ [عدد] سعرة حرارية.\n🔥 **مجموع سعرات هذه الوجبة:** [عدد] سعرة حرارية.\n\n---\n\n### 📊 التقرير اليومي الإجمالي:\n* **السعرات السابقة اليوم:** [قم بحساب السعرات من الوجبات السابقة، وإذا كتب \"وقت النوم\" في المحادثة السابقة اعتبرها 0] سعرة حرارية.\n* 📈 **إجمالي ما تم تناوله اليوم حتى الآن:** [اجمع سعرات الوجبة الحالية + السعرات السابقة] سعرة حرارية.\n\n---\n💡 *ملاحظة:* [إذا كانت الصورة غير واضحة، ضع تقديراً ذكياً واسأل المستخدم سؤالاً واحداً قصيراً للتأكيد]."
+        }
+      },
+      "id": "0d930c5d-772d-4c54-afee-83f49bb897b6",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        1968
+      ],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "a33c46d5-3635-4fb9-a6c2-a04e1a4fbe68",
+      "name": "Google Gemini Flash",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        128,
+        2192
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "U4l6VxjkzEMVNu6r",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=={{ $('Telegram Trigger').item.json.message.chat.id.toString() }}_{{ new Date().toLocaleDateString('en-US') }}",
+        "contextWindowLength": 40
+      },
+      "id": "f019e907-5fe6-41e9-af07-5beccce1f136",
+      "name": "Simple Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        336,
+        2192
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "e6f3dbfb-6d52-4929-ad92-3d141a200e70",
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        528,
+        1984
+      ],
+      "webhookId": "1d493d37-c138-41ef-857a-f1a123de7237",
+      "credentials": {
+        "telegramApi": {
+          "id": "DoN0iG2cvhPkNtTg",
+          "name": "Telegram account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "=={{ $json.message.photo ? 'photo' : 'text' }}",
+                    "rightValue": "photo",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "a7599929-d599-4d51-866b-aadf68a12d1b"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "7a1a5c71-c3c4-4f62-95a8-26c9fae79916",
+                    "leftValue": "",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -208,
+        1968
+      ],
+      "id": "cedf7274-b8cb-4606-91c0-b228028daabf",
+      "name": "Switch"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Resize": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Flash": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Resize",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "ae43b268-601d-48ff-981b-c58cb01747e3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9c4d9cade84af33beeff4dca7bafc060c36f54de118837de66e48b4ad4f113a7"
+  },
+  "nodeGroups": [],
+  "id": "fO8NiojQhBOZRqdq",
+  "tags": []
+}
