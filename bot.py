@@ -10,7 +10,7 @@
     1. TELEGRAM_BOT_TOKEN  -> احصل عليه من @BotFather على تليجرام
     2. GEMINI_API_KEY      -> احصل عليه من https://aistudio.google.com/app/apikey
 """
-
+import os
 import sqlite3
 import logging
 import re
