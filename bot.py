@@ -29,8 +29,9 @@ from google.genai.errors import APIError
 # ============================================================
 # 1) الإعدادات العامة - استبدل القيم التالية بقيمك الخاصة
 # ============================================================
-TELEGRAM_BOT_TOKEN = "TELEGRAM_BOT_TOKEN"
-GEMINI_API_KEY = "GEMINI_API_KEY"
+# السطر 30 و 31 في ملفك الحالي:
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8911215593:AAHEiqveTpNHLFh5hlAbEdtCExPYF2LM66c")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AQ.Ab8RN6LI_KNiRTfLq1bIYu_...")
 
 DB_PATH = "calories_bot.db"
 MAX_IMAGE_SIZE = (800, 800)
